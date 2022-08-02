@@ -21,11 +21,16 @@ pub fn build(b: *std.build.Builder) void {
         .cpu_arch = Target.Cpu.Arch.i386,
         .os_tag = Target.Os.Tag.freestanding,
     };
+    const rt = b.addObject("runtime", "src/runtime.zig");
+    rt.setBuildMode(mode);
+    rt.setTarget(target);
+    rt.setLinkerScriptPath(FileSource{ .path = "src/linker.ld" });
 
     const exe = b.addExecutable(KERNEL_NAME, "src/" ++ KERNEL_NAME ++ ".zig");
     exe.setBuildMode(mode);
     exe.setTarget(target);
     exe.setLinkerScriptPath(FileSource{ .path = "src/linker.ld" });
+    exe.addObject(rt);
     exe.install();
 
     // Select correct qemu executable corresponding to the target CPU architecture
