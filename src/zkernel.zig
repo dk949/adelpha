@@ -1,4 +1,5 @@
 const builtin = @import("std").builtin;
+const lib = @import("lib.zig");
 
 const MultiBoot = packed struct {
     magic: i32,
@@ -27,39 +28,48 @@ export fn _start() callconv(.Naked) noreturn {
 }
 
 pub fn panic(msg: []const u8, error_return_trace: ?*builtin.StackTrace) noreturn {
-    _ = error_return_trace; // keep zig compiler happy with unused parameter
     @setCold(true);
     terminal.write("KERNEL PANIC: ");
     terminal.write(msg);
+    terminal.write("\n");
+
+    if (error_return_trace) |stack| {
+        for (stack.instruction_addresses) |address|
+            terminal.writeNum(address);
+        terminal.write("\n");
+    } else terminal.write("no stack trace");
     while (true) {}
 }
 
 fn kmain() void {
     terminal.initialize();
-    terminal.write("Hello, Kernel World from Zig 0.7.1!");
+    terminal.write("Hello, Kernel World from Zig 0.10.0-dev!\n");
+    //terminal.write("a\taa\taaa\taaaa\ta\n");
+    //terminal.write("aaaa\taaa\taa\ta\ta\n");
 }
 
 // Hardware text mode color constants
-const VgaColor = u8;
-const VGA_COLOR_BLACK = 0;
-const VGA_COLOR_BLUE = 1;
-const VGA_COLOR_GREEN = 2;
-const VGA_COLOR_CYAN = 3;
-const VGA_COLOR_RED = 4;
-const VGA_COLOR_MAGENTA = 5;
-const VGA_COLOR_BROWN = 6;
-const VGA_COLOR_LIGHT_GREY = 7;
-const VGA_COLOR_DARK_GREY = 8;
-const VGA_COLOR_LIGHT_BLUE = 9;
-const VGA_COLOR_LIGHT_GREEN = 10;
-const VGA_COLOR_LIGHT_CYAN = 11;
-const VGA_COLOR_LIGHT_RED = 12;
-const VGA_COLOR_LIGHT_MAGENTA = 13;
-const VGA_COLOR_LIGHT_BROWN = 14;
-const VGA_COLOR_WHITE = 15;
+const VgaColor = enum(u8) {
+    VGA_COLOR_BLACK = 0,
+    VGA_COLOR_BLUE = 1,
+    VGA_COLOR_GREEN = 2,
+    VGA_COLOR_CYAN = 3,
+    VGA_COLOR_RED = 4,
+    VGA_COLOR_MAGENTA = 5,
+    VGA_COLOR_BROWN = 6,
+    VGA_COLOR_LIGHT_GREY = 7,
+    VGA_COLOR_DARK_GREY = 8,
+    VGA_COLOR_LIGHT_BLUE = 9,
+    VGA_COLOR_LIGHT_GREEN = 10,
+    VGA_COLOR_LIGHT_CYAN = 11,
+    VGA_COLOR_LIGHT_RED = 12,
+    VGA_COLOR_LIGHT_MAGENTA = 13,
+    VGA_COLOR_LIGHT_BROWN = 14,
+    VGA_COLOR_WHITE = 15,
+};
 
 fn vga_entry_color(fg: VgaColor, bg: VgaColor) u8 {
-    return fg | (bg << 4);
+    return @enumToInt(fg) | (@enumToInt(bg) << 4);
 }
 
 fn vga_entry(uc: u8, color: u8) u16 {
@@ -75,7 +85,7 @@ const terminal = struct {
     var row: usize = 0;
     var column: usize = 0;
 
-    var color = vga_entry_color(VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLACK);
+    var color = vga_entry_color(.VGA_COLOR_LIGHT_GREY, .VGA_COLOR_BLUE);
 
     const buffer = @intToPtr([*]volatile u16, 0xB8000);
 
@@ -99,18 +109,35 @@ const terminal = struct {
     }
 
     fn putChar(c: u8) void {
-        putCharAt(c, color, column, row);
-        column += 1;
-        if (column == VGA_WIDTH) {
-            column = 0;
-            row += 1;
-            if (row == VGA_HEIGHT)
-                row = 0;
+        switch (c) {
+            '\n' => {
+                row = (row + 1) % VGA_HEIGHT;
+                column = 0;
+            },
+            '\t' => {
+                column = column + (4 - (column % 4));
+                if (column >= VGA_WIDTH) {
+                    column = 0;
+                    row = (row + 1) % VGA_HEIGHT;
+                }
+            },
+            else => {
+                putCharAt(c, color, column, row);
+                column += 1;
+                if (column >= VGA_WIDTH) {
+                    column = 0;
+                    row = (row + 1) % VGA_HEIGHT;
+                }
+            },
         }
     }
 
     fn write(data: []const u8) void {
         for (data) |c|
             putChar(c);
+    }
+
+    fn writeNum(num: usize) void {
+        write(&lib.hexToStr(num));
     }
 };
