@@ -13,6 +13,13 @@ pub fn hexToStr(num: anytype) [@sizeOf(@TypeOf(num)) * 2]u8 {
     return ret;
 }
 
+pub fn enumToStr(comptime e: anytype) []const u8 {
+    return @typeInfo(@TypeOf(e))
+        .Enum
+        .fields[@enumToInt(e)]
+        .name;
+}
+
 // TODO: when There is some allocator interface
 //fn split(allocator: Allocator, str: []const u8, sep: u8) !ArrayList([]const u8) {
 //var out = ArrayList([]const u8).init(allocator);
