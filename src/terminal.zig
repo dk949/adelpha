@@ -1,4 +1,5 @@
 const utils = @import("utils.zig");
+const mem = utils.mem;
 
 const terminal = @This();
 
@@ -91,5 +92,5 @@ pub fn write(data: []const u8) void {
 }
 
 pub fn writeNum(num: usize) void {
-    write(&utils.hexToStr(num));
+    write(mem.sliceTo(&utils.hexToStr(num), 0));
 }
