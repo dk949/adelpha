@@ -19,6 +19,11 @@ pub const FsAction = union(enum) {
         path: []const u8,
         parents: bool = false,
     },
+    rm: struct {
+        path: []const u8,
+        recursive: bool,
+        force: bool,
+    },
 };
 
 /// public
@@ -42,7 +47,6 @@ pub fn create(builder: *Builder, name: []const u8, action: FsAction) *FsStep {
 fn make(step: *Step) !void {
     const self = @fieldParentPtr(FsStep, "step", step);
 
-    const stderr = std.io.getStdErr().writer();
     switch (self.action) {
         FsAction.cp => |cmd| {
             try fs.copyFileAbsolute(cmd.from, cmd.to, .{});
@@ -52,8 +56,14 @@ fn make(step: *Step) !void {
             defer dir.close();
             try dir.makePath(cmd.path);
         },
+        FsAction.rm => |cmd| {
+            if (cmd.recursive)
+                try fs.deleteTreeAbsolute(cmd.path)
+            else
+                try fs.deleteFileAbsolute(cmd.path);
+        },
         FsAction.none => {
-            _ = stderr.write("Warning: FsStep was used with a none action.\n") catch unreachable;
+            std.log.warn("FsStep was used with a none action.", .{});
         },
     }
 

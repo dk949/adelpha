@@ -63,11 +63,15 @@ fn joinPath(paths: []const []const u8) []const u8 {
     return std.fs.path.join(builder.allocator, paths) catch unreachable;
 }
 
+fn fromRelativePath(path: []const u8) []const u8 {
+    return std.fs.cwd().realpathAlloc(builder.allocator, path) catch unreachable;
+}
+
 pub fn build(b: *std.build.Builder) void {
     config.checkOs();
 
     builder = b;
-    mode = builder.standardReleaseOptions();
+    mode = b.standardReleaseOptions();
     default_ld = FileSource{ .path = "src/linker.ld" };
 
     const rt = addObject("runtime", "src/runtime.zig");
@@ -93,7 +97,7 @@ pub fn build(b: *std.build.Builder) void {
     );
     _ = check_iso_prereqs;
 
-    const isodir_path = joinPath(&.{ builder.install_prefix, "isodir" });
+    const isodir_path = joinPath(&.{ b.install_prefix, "isodir" });
     const isodir_boot_path = joinPath(&.{ isodir_path, "boot" });
     const isodir_grub_path = joinPath(&.{ isodir_boot_path, "grub" });
 
@@ -107,7 +111,7 @@ pub fn build(b: *std.build.Builder) void {
     const cp_kernel = createFsStep("cp kernel", .{
         .cp = .{
             .to = joinPath(&.{ isodir_boot_path, config.OS_NAME ++ ".bin" }),
-            .from = joinPath(&.{ builder.install_prefix, "bin", "kernel" }),
+            .from = joinPath(&.{ b.install_prefix, "bin", "kernel" }),
         },
     });
     cp_kernel.step.dependOn(&exe.install_step.?.step);
@@ -127,7 +131,7 @@ pub fn build(b: *std.build.Builder) void {
     );
     generate_grub_cfg.step.dependOn(&mkdir_isodir.step);
 
-    const iso_location = joinPath(&.{ builder.install_prefix, "bin", config.OS_NAME ++ ".iso" });
+    const iso_location = joinPath(&.{ b.install_prefix, "bin", config.OS_NAME ++ ".iso" });
 
     const mkiso_step = createRunStep("make iso");
     mkiso_step.addArgs(&.{ "grub-mkrescue", "-o", iso_location, isodir_path });
@@ -145,4 +149,27 @@ pub fn build(b: *std.build.Builder) void {
 
     const runiso = addStep("runiso", "Run the generated iso image in qemu");
     runiso.dependOn(&runiso_step.step);
+
+    const remove_cache = createFsStep("rm cache", .{
+        .rm = .{
+            .path = fromRelativePath(b.cache_root),
+            .force = true,
+            .recursive = true,
+        },
+    });
+
+    const remove_bin = createFsStep("rm bin", .{
+        .rm = .{
+            .path = b.install_prefix,
+            .force = true,
+            .recursive = true,
+        },
+    });
+
+    const clean = addStep("clean", "Remove artifacts");
+    clean.dependOn(&remove_bin.step);
+
+    const clean_all = addStep("cleanall", "Remove artifacts and cache");
+    clean_all.dependOn(&remove_cache.step);
+    clean_all.dependOn(clean);
 }
