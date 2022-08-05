@@ -16,13 +16,18 @@ builder: *Builder,
 /// private
 pathDeps: ArrayList([]const u8),
 
-pub fn create(builder: *Builder, name: []const u8) *PathDependencyStep {
+pub fn create(builder: *Builder, name: []const u8, maybe_deps: ?[]const []const u8) *PathDependencyStep {
     const self = builder.allocator.create(PathDependencyStep) catch unreachable;
     self.* = PathDependencyStep{
         .builder = builder,
         .step = Step.init(base_id, name, builder.allocator, make),
         .pathDeps = ArrayList([]const u8).init(builder.allocator),
     };
+
+    if (maybe_deps) |deps|
+        for (deps) |d|
+            self.addDependency(d);
+
     return self;
 }
 
