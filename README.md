@@ -63,6 +63,24 @@ zig build mkiso
 zig build runiso
 ```
 
+
+## TODO:
+
+In no particular order
+
+* [ ] Serial console: print to something that is not 80x25 chars
+* [ ] VGA driver: have better (any?) control over the display.
+* [ ] Keyboard driver: get user input via keyboard.
+* [ ] Mouse driver: get user input via mouse (maybe).
+* [ ] Memory permissions: set memory permissions.
+  * [ ] This will require setting up a Global Descriptor Table.
+* [ ] Handle interrupts.
+  * [ ] This will require setting up an Interrupt Descriptor Table.
+* [ ] Memory manager: make sure memory can be manged...
+  * [ ] Start by getting a memory map.
+  * [ ] Figure the rest out later.
+
 --------------------------------------------------------------------------------
 
 i386 startup code borowed form <https://github.com/andrewrk/HellOS>
+
