@@ -62,3 +62,7 @@ zig build mkiso
 ``` sh
 zig build runiso
 ```
+
+--------------------------------------------------------------------------------
+
+i386 startup code borowed form <https://github.com/andrewrk/HellOS>
