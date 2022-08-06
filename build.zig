@@ -34,6 +34,7 @@ fn addExecutable(name: []const u8, source: []const u8) *LibExeObjStep {
     var exe = builder.addExecutable(name, source);
     exe.setBuildMode(mode);
     exe.setTarget(config.target);
+    exe.overrideZigLibDir(config.stdlib);
     setDefaultLdOr(exe, null);
     return exe;
 }
@@ -74,10 +75,7 @@ pub fn build(b: *std.build.Builder) void {
     mode = b.standardReleaseOptions();
     default_ld = FileSource{ .path = "src/linker.ld" };
 
-    const rt = addObject("runtime", "src/runtime.zig");
-
     const exe = addExecutable("kernel", "src/kernel.zig");
-    exe.addObject(rt);
     exe.install();
 
     const check_qemu = createPathDependencyStep("check qemu", &.{qemu});

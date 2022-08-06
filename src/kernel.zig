@@ -1,9 +1,12 @@
+comptime {
+    _ = @import("runtime.zig");
+}
 const terminal = @import("terminal.zig");
 const builtin = @import("builtin");
 const cpu = builtin.cpu;
 const utils = @import("utils.zig");
 
-export fn kmain() void {
+pub fn kmain() !void {
     const ver = builtin.zig_version;
     terminal.write("Zig ");
     terminal.writeNum(ver.major);

@@ -1,4 +1,5 @@
 const builtin = @import("std").builtin;
+const meta = @import("std").meta;
 const terminal = @import("terminal.zig");
 
 const MultiBoot = packed struct {
@@ -21,8 +22,6 @@ export var multiboot align(4) linksection(".multiboot") = MultiBoot{
 export var stack_bytes: [16 * 1024]u8 align(16) linksection(".bss") = undefined;
 const stack_bytes_slice = stack_bytes[0..];
 
-extern fn kmain() void;
-
 export fn _start() callconv(.Naked) noreturn {
     @call(.{ .stack = stack_bytes_slice }, _kmain, .{});
 
@@ -31,7 +30,31 @@ export fn _start() callconv(.Naked) noreturn {
 
 fn _kmain() void {
     terminal.initialize();
-    kmain();
+    const root = @import("root");
+
+    if (!@hasDecl(root, "kmain"))
+        @compileError("Missing kmain in file " ++ @typeName(root) ++ ".zig");
+
+    switch (@typeInfo(@TypeOf(root.kmain))) {
+        else => @compileError("Expected kmain to be a function"),
+
+        .Fn => |fn_| {
+            if (fn_.args.len != 0) @compileError("Expected kmain to take no arguments");
+
+            switch (@typeInfo(fn_.return_type.?)) {
+                else => @compileError("Expected kmain to return !void"),
+
+                .ErrorUnion => |errUnion| {
+                    if (errUnion.payload != void) @compileError("Expected kmain to return !void");
+
+                    return root.kmain() catch |err|
+                        @panic("kmain exited with error: " ++ @errorName(err));
+                },
+            }
+        },
+    }
+
+    @compileError("Internal error: did not call kmain");
 }
 
 pub fn panic(msg: []const u8, error_return_trace: ?*builtin.StackTrace) noreturn {

@@ -15,7 +15,7 @@ pub const supported_host_os: []std.Target.Os.Tag = .{std.Target.Os.Tag.linux};
 pub fn checkOs() void {
     const os: std.Target.Os = @import("builtin").os;
     comptime if (!(os.tag.isBSD() or os.tag == .linux))
-        @compileError("\n\n" ++ std.meta.tagName(os.tag) ++
+        @compileError("\n\n" ++ @tagName(os.tag) ++
             \\ is not a supported host OS.
             \\You could try to rebuild without this check, but chances of success are pretty much 0.
             \\
@@ -24,3 +24,5 @@ pub fn checkOs() void {
             \\
         );
 }
+
+pub const stdlib = "/usr/lib/zig/lib";
