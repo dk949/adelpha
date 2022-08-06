@@ -23,7 +23,7 @@ pub fn kmain() !void {
         terminal.write(build);
     }
     terminal.write(" running on an ");
-    terminal.write(utils.enumToStr(cpu.arch));
+    terminal.write(@tagName(cpu.arch));
     terminal.write(" ");
     terminal.write(cpu.model.name);
     terminal.write(" cpu.\n");

@@ -36,21 +36,6 @@ test "hex to string" {
     try expect(mem.eql(u8, &hexToStr(testNum), "1"));
 }
 
-pub fn enumToStr(comptime e: anytype) []const u8 {
-    return @typeInfo(@TypeOf(e))
-        .Enum
-        .fields[@enumToInt(e)]
-        .name;
-}
-
-test "enum to string" {
-    const expect = @import("std").testing.expect;
-
-    const E = enum { A, B, C };
-    const e = E.A;
-    try expect(mem.eql(u8, enumToStr(e), "A"));
-}
-
 /// Remove the outer most layer of const from T if T is a pointer type.
 /// Note: this does not make a const value modifiable.
 /// *const T -> *T
