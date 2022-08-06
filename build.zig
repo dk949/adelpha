@@ -93,7 +93,6 @@ pub fn build(b: *std.build.Builder) void {
         "check iso creation prerequisites",
         &.{ "xorriso", "mformat", "grub-mkrescue" },
     );
-    _ = check_iso_prereqs;
 
     const isodir_path = joinPath(&.{ b.install_prefix, "isodir" });
     const isodir_boot_path = joinPath(&.{ isodir_path, "boot" });
