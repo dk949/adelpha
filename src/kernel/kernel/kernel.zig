@@ -1,10 +1,10 @@
 comptime {
-    _ = @import("runtime.zig");
+    _ = @import("krt").runtime;
 }
-const terminal = @import("terminal.zig");
+const krt = @import("krt");
+const terminal = krt.terminal;
 const builtin = @import("builtin");
 const cpu = builtin.cpu;
-const utils = @import("utils.zig");
 
 pub fn kmain() !void {
     const ver = builtin.zig_version;

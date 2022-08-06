@@ -3,6 +3,7 @@ const config = @import("build/config.zig");
 const Mode = std.builtin.Mode;
 const Builder = std.build.Builder;
 const FileSource = std.build.FileSource;
+const Pkg = std.build.Pkg;
 const LibExeObjStep = std.build.LibExeObjStep;
 const Step = std.build.Step;
 const RunStep = std.build.RunStep;
@@ -73,9 +74,15 @@ pub fn build(b: *std.build.Builder) void {
 
     builder = b;
     mode = b.standardReleaseOptions();
-    default_ld = FileSource{ .path = "src/linker.ld" };
+    default_ld = FileSource{
+        .path = "src/kernel/krt/arch/" ++ @tagName(config.target.cpu_arch.?) ++ "/linker.ld",
+    };
 
-    const exe = addExecutable("kernel", "src/kernel.zig");
+    const exe = addExecutable("kernel", "src/kernel/kernel/kernel.zig");
+    exe.addPackage(Pkg{
+        .name = "krt",
+        .source = FileSource{ .path = "src/kernel/krt/krt.zig" },
+    });
     exe.install();
 
     const check_qemu = createPathDependencyStep("check qemu", &.{qemu});

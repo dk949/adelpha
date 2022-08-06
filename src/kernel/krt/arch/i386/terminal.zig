@@ -1,7 +1,28 @@
 const utils = @import("utils.zig");
-const mem = utils.mem;
+const mem = @import("std").mem;
 
-const terminal = @This();
+pub fn initialize() void {
+    var y: usize = 0;
+    while (y < VGA_HEIGHT) : (y += 1) {
+        var x: usize = 0;
+        while (x < VGA_WIDTH) : (x += 1) {
+            putCharAt(' ', color, x, y);
+        }
+    }
+}
+
+pub fn setColor(new_color: u8) void {
+    color = new_color;
+}
+
+pub fn write(data: []const u8) void {
+    for (data) |c|
+        putChar(c);
+}
+
+pub fn writeNum(num: usize) void {
+    write(mem.sliceTo(&utils.hexToStr(num), 0));
+}
 
 // Hardware text mode color constants
 const VgaColor = enum(u8) {
@@ -43,20 +64,6 @@ var color = vga_entry_color(.VGA_COLOR_LIGHT_GREY, .VGA_COLOR_BLUE);
 
 const buffer = @intToPtr([*]volatile u16, 0xB8000);
 
-pub fn initialize() void {
-    var y: usize = 0;
-    while (y < VGA_HEIGHT) : (y += 1) {
-        var x: usize = 0;
-        while (x < VGA_WIDTH) : (x += 1) {
-            putCharAt(' ', color, x, y);
-        }
-    }
-}
-
-pub fn setColor(new_color: u8) void {
-    color = new_color;
-}
-
 fn putCharAt(c: u8, new_color: u8, x: usize, y: usize) void {
     const index = y * VGA_WIDTH + x;
     buffer[index] = vga_entry(c, new_color);
@@ -84,13 +91,4 @@ fn putChar(c: u8) void {
             }
         },
     }
-}
-
-pub fn write(data: []const u8) void {
-    for (data) |c|
-        putChar(c);
-}
-
-pub fn writeNum(num: usize) void {
-    write(mem.sliceTo(&utils.hexToStr(num), 0));
 }
