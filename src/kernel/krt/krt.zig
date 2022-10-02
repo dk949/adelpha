@@ -1,5 +1,6 @@
 pub const runtime = load("runtime");
 pub const terminal = load("terminal");
+pub const serial = load("serial");
 
 ////////////////////////////////////////
 

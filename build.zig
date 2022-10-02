@@ -83,6 +83,7 @@ pub fn build(b: *std.build.Builder) void {
         .name = "krt",
         .source = FileSource{ .path = "src/kernel/krt/krt.zig" },
     });
+    exe.addCSourceFile("src/kernel/krt/arch/" ++ @tagName(config.target.cpu_arch.?) ++ "/serial.c", &.{ "-nostdlib", "-m32" });
     exe.install();
 
     const check_qemu = createPathDependencyStep("check qemu", &.{qemu});
@@ -90,6 +91,7 @@ pub fn build(b: *std.build.Builder) void {
     const run_step = createRunStep("run qemu");
     run_step.addArgs(&.{ qemu, "-kernel" });
     run_step.addArtifactArg(exe);
+    run_step.addArgs(&.{ "-serial", "stdio" });
     run_step.step.dependOn(&exe.install_step.?.step);
     run_step.step.dependOn(&check_qemu.step);
 
@@ -147,7 +149,7 @@ pub fn build(b: *std.build.Builder) void {
     mkiso.dependOn(&mkiso_step.step);
 
     const runiso_step = createRunStep("run iso");
-    runiso_step.addArgs(&.{ qemu, "-cdrom", iso_location });
+    runiso_step.addArgs(&.{ qemu, "-cdrom", iso_location, "-serial", "stdio" });
     runiso_step.step.dependOn(&mkiso_step.step);
     runiso_step.step.dependOn(&check_qemu.step);
 

@@ -26,6 +26,7 @@ SECTIONS {
 	.bss : ALIGN(4K) {
 		*(COMMON) /*wild card for all section considered common*/
 		*(.bss)
+        KEEP(*(.stack_bytes))
 	}
 
 	/* The compiler may produce other sections, put them in the proper place in
