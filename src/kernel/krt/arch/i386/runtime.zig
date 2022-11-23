@@ -63,7 +63,7 @@ fn _kmain() void {
     @compileError("Internal error: did not call kmain");
 }
 
-pub fn panic(msg: []const u8, error_return_trace: ?*@import("std").builtin.StackTrace) noreturn {
+pub fn panic(msg: []const u8, error_return_trace: ?*@import("std").builtin.StackTrace, _: ?usize) noreturn {
     @setCold(true);
     terminal.write("KERNEL PANIC: ");
     terminal.write(msg);

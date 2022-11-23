@@ -6,7 +6,7 @@ pub const OS_NAME = "adelpha";
 
 pub const target = CrossTarget{
     .cpu_arch = Target.Cpu.Arch.i386,
-    .cpu_model = .{ .baseline = .{} },
+    .cpu_model = .baseline,
     .os_tag = Target.Os.Tag.freestanding,
 };
 
@@ -25,4 +25,5 @@ pub fn checkOs() void {
         );
 }
 
-pub const stdlib = "/usr/lib/zig/lib";
+// pub const stdlib = "/usr/lib/zig/lib";
+pub const stdlib: ?[]const u8 = null;

@@ -19,7 +19,7 @@ pub fn hexToStr(num: usize) [@sizeOf(usize) * 2]u8 {
         else => {},
     }
     var n = num;
-    var i: usize = ret.len - @clz(@TypeOf(num), num) / 4;
+    var i: usize = ret.len - @clz(num) / 4;
     while (n != 0) : (n >>= 4) {
         ret[i - 1] = blk: {
             const d = (@truncate(u8, n) & 0x0f);

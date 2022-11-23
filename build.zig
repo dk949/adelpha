@@ -35,7 +35,7 @@ fn addExecutable(name: []const u8, source: []const u8) *LibExeObjStep {
     var exe = builder.addExecutable(name, source);
     exe.setBuildMode(mode);
     exe.setTarget(config.target);
-    exe.overrideZigLibDir(config.stdlib);
+    if (config.stdlib) |stdlib| exe.overrideZigLibDir(stdlib);
     setDefaultLdOr(exe, null);
     return exe;
 }
@@ -73,16 +73,18 @@ pub fn build(b: *std.build.Builder) void {
     config.checkOs();
 
     builder = b;
+    builder.use_stage1 = true;
     mode = b.standardReleaseOptions();
     default_ld = FileSource{
         .path = "src/kernel/krt/arch/" ++ @tagName(config.target.cpu_arch.?) ++ "/linker.ld",
     };
 
-    const exe = addExecutable("kernel", "src/kernel/kernel/kernel.zig");
-    exe.addPackage(Pkg{
+    var krt = Pkg{
         .name = "krt",
         .source = FileSource{ .path = "src/kernel/krt/krt.zig" },
-    });
+    };
+    var exe = addExecutable("kernel", "src/kernel/kernel/kernel.zig");
+    exe.addPackage(krt);
     exe.addCSourceFile("src/kernel/krt/arch/" ++ @tagName(config.target.cpu_arch.?) ++ "/serial.c", &.{ "-nostdlib", "-m32" });
     exe.install();
 

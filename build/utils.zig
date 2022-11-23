@@ -9,7 +9,7 @@ pub fn exeInPath(exe: []const u8) bool {
     outer: for (path) |ch| {
         end += 1;
         if (ch == ':') {
-            var d = std.fs.openDirAbsolute(path[start .. end - 1], .{ .iterate = true }) catch continue :outer;
+            var d = std.fs.openIterableDirAbsolute(path[start .. end - 1], .{ .access_sub_paths = true }) catch continue :outer;
             defer d.close();
             var iter = d.iterate();
             var pathDir = iter.next() catch continue :outer;
